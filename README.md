@@ -70,10 +70,10 @@ This project prioritizes **logical elegance and symbolic meaning** alongside fun
 ### Example Conversions
 | Gregorian Date | Logical Vernal Date | Notes |
 | :--- | :--- | :--- |
-| March 20, 2025 | March 1, 444 | Start of a new year |
-| February 28, 2024 | Sol 28, 443 | Last day of 13-month structure |
-| March 18, 2024 | Year Day, 443 | Standard year-end day |
-| March 19, 2024 | Leap Day, 443 | Extra day for leap year 2024 |
+| March 20, 2025 | March 1, 443 | Start of a new year |
+| February 28, 2024 | Sol 28, 442 | Last day of 13-month structure |
+| March 18, 2024 | Year Day, 442 | Standard year-end day |
+| March 19, 2024 | Leap Day, 442 | Extra day for leap year 2024 |
 
 ## 🤝 Collaboration Credits
 This project was created through a unique collaborative design process between:
