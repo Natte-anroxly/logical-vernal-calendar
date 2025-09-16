@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Great Logical Vernal Calendar v8.1</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --secondary: #ec4899;
+            --accent: #06b6d4;
+            --light: #f0f9ff;
+            --dark: #0f172a;
+            --gray: #94a3b8;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 700px;
+            padding: 40px;
+            margin: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid var(--accent);
+            padding-bottom: 20px;
+        }
+        h1 {
+            color: var(--primary);
+            margin-bottom: 5px;
+            font-size: 2.8rem;
+            font-weight: 800;
+        }
+        .version {
+            color: var(--secondary);
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+        .description {
+            color: var(--dark);
+            margin-top: 15px;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+        .converter-section {
+            margin-bottom: 35px;
+            padding: 30px;
+            border-radius: 18px;
+            background: linear-gradient(to bottom right, var(--light) 0%, #e2e8f0 100%);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: var(--primary-light);
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+        }
+        h2::after {
+            content: "";
+            flex: 1;
+            height: 2px;
+            margin-left: 15px;
+            background: linear-gradient(to right, var(--primary-light), transparent);
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 1.1rem;
+        }
+        select, input[type="date"] {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid var(--gray);
+            border-radius: 12px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            background-color: white;
+            margin-bottom: 10px;
+        }
+        select:focus, input[type="date"]:focus {
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.2);
+        }
+        button {
+            background: linear-gradient(to right, var(--primary-light), var(--secondary));
+            color: white;
+            border: none;
+            padding: 18px 35px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 15px;
+            letter-spacing: 0.5px;
+        }
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.3);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .result {
+            margin-top: 25px;
+            padding: 30px;
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            border-radius: 15px;
+            border-left: 5px solid var(--accent);
+            text-align: center;
+        }
+        .converted-date {
+            font-size: 2.1rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 15px 0;
+            line-height: 1.3;
+        }
+        .gregorian-reference {
+            font-size: 1.4rem;
+            color: var(--secondary);
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .special-note {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #fffbeb;
+            border-radius: 10px;
+            border-left: 4px solid #f59e0b;
+            font-size: 0.9rem;
+            color: #92400e;
+        }
+        .calendar-info {
+            margin-top: 35px;
+            padding: 25px;
+            background-color: #f0f9ff;
+            border-radius: 15px;
+            border: 2px dashed var(--accent);
+        }
+        .calendar-info h3 {
+            color: var(--primary-light);
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 12px 20px;
+            margin-top: 15px;
+        }
+        .info-label {
+            font-weight: 700;
+            color: var(--dark);
+        }
+        .info-value {
+            color: var(--primary-light);
+            font-weight: 500;
+        }
+        .credits {
+            margin-top: 35px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-radius: 15px;
+            border-left: 5px solid var(--secondary);
+        }
+        .credits h3 {
+            color: var(--secondary);
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        .credits a {
+            color: var(--primary-light);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .credits a:hover {
+            text-decoration: underline;
+        }
+        .footer {
+            margin-top: 40px;
+            font-size: 0.95rem;
+            color: var(--gray);
+            text-align: center;
+            border-top: 1px solid var(--gray);
+            padding-top: 25px;
+            line-height: 1.7;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+                margin: 15px;
+            }
+            h1 {
+                font-size: 2.2rem;
+            }
+            .converted-date {
+                font-size: 1.8rem;
+            }
+            .gregorian-reference {
+                font-size: 1.2rem;
+            }
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Great Logical Vernal Calendar</h1>
+            <div class="version">Version 8.1 - Global Modes</div>
+            <p class="description">A pragmatic 13-month calendar system inspired by astronomical principles and logical structure. Now with global support.</p>
+        </div>
+        
+        <div class="converter-section">
+            <h2>Date Converter</h2>
+            <div class="input-group">
+                <label for="calendar-mode">Select Your Hemisphere:</label>
+                <select id="calendar-mode">
+                    <option value="north">Northern Hemisphere (Spring: March)</option>
+                    <option value="south">Southern Hemisphere (Spring: September)</option>
+                    <option value="universal">Equatorial / Universal (Sidereal: April)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="gregorianDate">Select a Gregorian Date:</label>
+                <input type="date" id="gregorianDate">
+            </div>
+            <button onclick="convertToLV()">Convert to Logical Vernal Date</button>
+            <div class="result">
+                <div id="lvResult" class="converted-date">Select a date to convert</div>
+                <div id="gregorianReference" class="gregorian-reference"></div>
+                <div id="specialNote" class="special-note"></div>
+            </div>
+        </div>
+        
+        <div class="calendar-info">
+            <h3>About The Modes</h3>
+            <div class="info-grid">
+                <div class="info-label">Northern Mode:</div>
+                <div class="info-value">New Year starts at Vernal Equinox (March 19-20)</div>
+                
+                <div class="info-label">Southern Mode:</div>
+                <div class="info-value">New Year starts at Autumnal Equinox (Sep 22-23)</div>
+                
+                <div class="info-label">Universal Mode:</div>
+                <div class="info-value">New Year starts at Sidereal Aries (Fixed April 14)</div>
+                
+                <div class="info-label">Design Philosophy:</div>
+                <div class="info-value">Respects astronomical and cultural differences across Earth</div>
+            </div>
+        </div>
+
+        <div class="calendar-info">
+            <h3>Special Note for Universal Mode</h3>
+            <div class="info-grid">
+                <div class="info-label">Leap Year Rule:</div>
+                <div class="info-value">Uses same Gregorian leap year rules as other modes</div>
+                
+                <div class="info-label">April 14th Meaning:</div>
+                <div class="info-value">In leap years, April 14th serves as both <strong>Leap Day</strong> (final day of old year) and <strong>March 1</strong> (first day of new year)</div>
+                
+                <div class="info-label">Why This Works:</div>
+                <div class="info-value">This maintains perfect synchronization with the Gregorian calendar while keeping the simple April 14th anchor date</div>
+                
+                <div class="info-label">Example:</div>
+                <div class="info-value">In leap year 2024: April 13 = Leap Day = April 14, 441 | April 14 = March 1, 442</div>
+            </div>
+        </div>
+
+        <div class="calendar-info">
+            <h3>Calendar Specifications</h3>
+            <div class="info-grid">
+                <div class="info-label">Epoch:</div>
+                <div class="info-value">Year 1 began on the Vernal Equinox of 1583</div>
+                
+                <div class="info-label">Current LV Year:</div>
+                <div class="info-value">443 (Since Epoch)</div>
+                
+                <div class="info-label">Structure:</div>
+                <div class="info-value">13 months of 28 days + Year Day (+ Leap Day)</div>
+                
+                <div class="info-label">Time Standard:</div>
+                <div class="info-value">Coordinated Universal Time (UTC)</div>
+
+                <div class="info-label">Leap Year Rule:</div>
+                <div class="info-value">Standard Gregorian rule (divisible by 4, not by 100 unless by 400)</div>
+            </div>
+        </div>
+        
+        <div class="credits">
+            <h3>Collaboration Credits</h3>
+            <div class="info-grid">
+                <div class="info-label">AI System:</div>
+                <div class="info-value">DeepSeek-V3 by <a href="https://www.deepseek.com" target="_blank">DeepSeek</a></div>
+                
+                <div class="info-label">Original Idea & Design:</div>
+                <div class="info-value"><a href="https://github.com/Natte-anroxly" target="_blank">Natte-anroxly</a></div>
+                
+                <div class="info-label">Astronomical Logic:</div>
+                <div class="info-value">Joint development between AI and human collaborator</div>
+                
+                <div class="info-label">Version:</div>
+                <div class="info-value">8.1 (Final Global Release)</div>
+                
+                <div class="info-label">License:</div>
+                <div class="info-value">Open Source - Free for educational use</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Created through human-AI collaboration. This calendar harmonizes mathematical elegance with astronomical symbolism.</p>
+            <p>LV Year + 1582 = Gregorian Year | UTC Time Standard | Three Global Modes</p>
+        </div>
+    </div>
+
+    <script>
+        // Define the epoch: Vernal Equinox of 1583
+        const EPOCH_YEAR = 1583;
+        
+        // Set today's date as default
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            document.getElementById('gregorianDate').valueAsDate = today;
+            convertToLV();
+        });
+        
+        // Function to get the March Equinox date for any given year (Northern Mode)
+        function getMarchEquinox(year) {
+            const cycleStartYear = 1588;
+            if (year < cycleStartYear) return new Date(Date.UTC(year, 2, 20));
+            const yearsSinceStart = year - cycleStartYear;
+            if (yearsSinceStart % 4 === 0) return new Date(Date.UTC(year, 2, 19));
+            return new Date(Date.UTC(year, 2, 20));
+        }
+        
+        // Function to get the September Equinox date for any given year (Southern Mode)
+        function getSeptemberEquinox(year) {
+            const cycleStartYear = 1588;
+            if (year < cycleStartYear) return new Date(Date.UTC(year, 8, 23));
+            const yearsSinceStart = year - cycleStartYear;
+            if (yearsSinceStart % 4 === 0) return new Date(Date.UTC(year, 8, 22));
+            return new Date(Date.UTC(year, 8, 23));
+        }
+        
+        // Convert Gregorian to Logical Vernal
+        function convertToLV() {
+            const gregorianDateInput = document.getElementById('gregorianDate').value;
+            const mode = document.getElementById('calendar-mode').value;
+            
+            if (!gregorianDateInput) {
+                alert("Please select a date first!");
+                return;
+            }
+            
+            const gregorianDate = new Date(gregorianDateInput);
+            const result = gregorianToLV(gregorianDate, mode);
+            
+            // Clear any previous special notes
+            document.getElementById('specialNote').textContent = '';
+            
+            // Check if we need to show a special note for Universal leap year
+            if (mode === 'universal') {
+                const gYear = gregorianDate.getFullYear();
+                const isLeapYear = (gYear % 4 === 0 && (gYear % 100 !== 0 || gYear % 400 === 0));
+                const month = gregorianDate.getMonth();
+                const day = gregorianDate.getDate();
+                
+                if (isLeapYear && month === 3 && day === 14) {
+                    document.getElementById('specialNote').textContent = 'Note: April 14th serves as both Leap Day (old year) and March 1 (new year) in leap years.';
+                }
+            }
+            
+            const [lvDate, lvYear] = result.split(', ');
+            const gregorianYear = parseInt(lvYear) + 1582;
+            
+            document.getElementById('lvResult').textContent = `${lvDate}, ${lvYear}`;
+            document.getElementById('gregorianReference').textContent = `(Gregorian Equivalent: ${gregorianYear})`;
+        }
+        
+        // Core conversion logic: Gregorian to Logical Vernal
+        function gregorianToLV(gregorianDate, mode) {
+            const lvMonths = ["March", "April", "May", "June", "July", "August", "September", 
+                             "October", "November", "December", "January", "February", "Sol"];
+            
+            const gYear = gregorianDate.getFullYear();
+            let startDate;
+            let lvYear;
+
+            // Determine start date based on selected mode
+            if (mode === 'north') {
+                const marchEquinoxThisYear = getMarchEquinox(gYear);
+                const marchEquinoxLastYear = getMarchEquinox(gYear - 1);
+                const utcGregorianDate = new Date(Date.UTC(gregorianDate.getFullYear(), gregorianDate.getMonth(), gregorianDate.getDate()));
+                
+                if (utcGregorianDate >= marchEquinoxThisYear) {
+                    lvYear = gYear;
+                    startDate = marchEquinoxThisYear;
+                } else {
+                    lvYear = gYear - 1;
+                    startDate = marchEquinoxLastYear;
+                }
+            } 
+            else if (mode === 'south') {
+                const septemberEquinoxThisYear = getSeptemberEquinox(gYear);
+                const septemberEquinoxLastYear = getSeptemberEquinox(gYear - 1);
+                const utcGregorianDate = new Date(Date.UTC(gregorianDate.getFullYear(), gregorianDate.getMonth(), gregorianDate.getDate()));
+                
+                if (utcGregorianDate >= septemberEquinoxThisYear) {
+                    lvYear = gYear;
+                    startDate = septemberEquinoxThisYear;
+                } else {
+                    lvYear = gYear - 1;
+                    startDate = septemberEquinoxLastYear;
+                }
+            } 
+            else { // Universal mode
+                // Fixed April 14th start for every year
+                startDate = new Date(Date.UTC(gYear, 3, 14)); // April 14th
+                const utcGregorianDate = new Date(Date.UTC(gregorianDate.getFullYear(), gregorianDate.getMonth(), gregorianDate.getDate()));
+                
+                // Check if previous year was leap year to determine current year length
+                const isPreviousYearLeap = ((gYear - 1) % 4 === 0 && ((gYear - 1) % 100 !== 0 || (gYear - 1) % 400 === 0));
+                const daysInPreviousYear = isPreviousYearLeap ? 366 : 365;
+                
+                if (utcGregorianDate >= startDate) {
+                    lvYear = gYear;
+                } else {
+                    lvYear = gYear - 1;
+                    startDate = new Date(Date.UTC(gYear - 1, 3, 14)); // Previous year's April 14th
+                }
+            }
+            
+            // Calculate days since the start of the LV year
+            const msPerDay = 1000 * 60 * 60 * 24;
+            const utcGregorianDate = new Date(Date.UTC(gregorianDate.getFullYear(), gregorianDate.getMonth(), gregorianDate.getDate()));
+            const timeDiff = utcGregorianDate - startDate;
+            let daysDiff = Math.floor(timeDiff / msPerDay);
+            
+            // Handle dates within the 13-month structure
+            if (daysDiff < 364) {
+                const monthIndex = Math.floor(daysDiff / 28);
+                const dayOfMonth = (daysDiff % 28) + 1;
+                const lvYearNumber = lvYear - EPOCH_YEAR + 1;
+                return `${lvMonths[monthIndex]} ${dayOfMonth}, ${lvYearNumber}`;
+            }
+            // Handle Year Day and Leap Day
+            else {
+                const isLeapYear = (lvYear % 4 === 0 && (lvYear % 100 !== 0 || lvYear % 400 === 0));
+                const lvYearNumber = lvYear - EPOCH_YEAR + 1;
+                
+                if (daysDiff === 364) {
+                    return `Year Day, ${lvYearNumber}`;
+                } else if (daysDiff === 365 && isLeapYear) {
+                    return `Leap Day, ${lvYearNumber}`;
+                } else {
+                    return `Error: Date is out of range, ${lvYearNumber}`;
+                }
+            }
+        }
+    </script>
+</body>
+</html>
