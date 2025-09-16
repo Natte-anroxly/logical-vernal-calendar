@@ -70,7 +70,7 @@ In Universal Mode, the fixed date of April 14th serves as the anchor for the New
 This elegant solution maintains the simple April 14th anchor while inheriting the proven leap year rules of the Gregorian system, ensuring perfect long-term sync.
 
 **Example from leap year 2024:**
-- `April 13, 2024 (Gregorian)` = **Leap Day, 441**
+- `April 13, 2024 (Gregorian)` = **Leap Day = April 14, 441**
 - `April 14, 2024 (Gregorian)` = **March 1, 442**
 
 ### Astronomical Alignment (A Pragmatic Approach)
