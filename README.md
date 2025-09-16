@@ -1,88 +1,91 @@
 # 🌟 Great Logical Vernal Calendar
 
-An astronomically-aligned calendar system for the Northern Hemisphere, based on the Vernal Equinox and a logical 13-month structure. This was a collaborative project between human creativity and AI implementation.
+An innovative calendar system offering multiple modes to respect astronomical and cultural differences across Earth. Features a logical 13-month structure and was a collaborative project between human creativity and AI implementation.
 
 ## 🌐 Live Website
-**Experience the calendar converter here:**  
+**Experience the calendar converter here:**
 [https://natte-anroxly.github.io/logical-vernal-calendar/](https://natte-anroxly.github.io/logical-vernal-calendar/)
 
-*Last Updated: September 2025 | Version 7.0*
-
 ## 🗓️ How It Works
-- **Epoch:** Year 1 began on the Vernal Equinox of 1583
-- **Structure:** 13 months of 28 days + Year Day (+ Leap Day in leap years)
-- **New Year:** Starts on the day of the March Equinox
-- **Design Philosophy:** Harmony between astronomical symbolism and logical structure
-- **Hemisphere:** Designed for the Northern Hemisphere (Spring-based renewal)
-- **Time Standard:** All calculations use Coordinated Universal Time (UTC)
+- **Epoch:** Year 1 began on the Vernal Equinox of 1583 (Northern Mode).
+- **Structure:** 13 months of 28 days + Year Day (+ Leap Day in leap years).
+- **Design Philosophy:** Harmony between astronomical symbolism, logical structure, and global inclusivity.
+- **Time Standard:** All calculations use Coordinated Universal Time (UTC).
+
+## 🌍 About The Modes
+
+The calendar operates in three distinct modes, allowing users to choose a New Year that aligns with their astronomical or cultural perspective.
+
+### Northern Mode (Default)
+- **New Year Start:** Vernal Equinox (approx. March 19-20).
+- **Hemisphere Focus:** Designed for the Northern Hemisphere, symbolizing Spring-based renewal and rebirth.
+
+### Southern Mode
+- **New Year Start:** Autumnal Equinox (approx. Sep 22-23).
+- **Hemisphere Focus:** Designed for the Southern Hemisphere, aligning its New Year with the beginning of Spring in the south.
+
+### Universal Mode (Sidereal)
+- **New Year Start:** Fixed on Sidereal Aries (April 14).
+- **Philosophy:** Offers a stable, non-moving anchor point for the year, independent of the shifting equinoxes. It represents a universal constant.
 
 ## 📜 The 13 Months
-1. March
-2. April
-3. May
-4. June
-5. July
-6. August
-7. September
-8. October
-9. November
+The month names are consistent across all modes.
+1.  March
+2.  April
+3.  May
+4.  June
+5.  July
+6.  August
+7.  September
+8.  October
+9.  November
 10. December
 11. January
 12. February
 13. Sol
 
 ## 🚀 How to Use
-1. Open the [live website](https://natte-anroxly.github.io/logical-vernal-calendar/)
-2. Select any Gregorian date using the date picker
-3. Click "Convert to Logical Vernal Date" to see its equivalent in the new calendar
-4. The result shows the Logical Vernal date and its Gregorian year equivalent
+1.  Open the [live website](https://natte-anroxly.github.io/logical-vernal-calendar/).
+2.  Select any Gregorian date using the date picker.
+3.  Click "Convert to Logical Vernal Date" to see its equivalent in the new calendar.
+4.  The result shows the Logical Vernal date and its Gregorian year equivalent.
 
 ## 📊 Technical Notes & Design Philosophy
 
-### Leap Year Rule
-This calendar uses the **exact same leap year algorithm as the Gregorian calendar** to maintain long-term astronomical accuracy. The rule follows this logic:
-- A year is a leap year if it is divisible by 4
-- But not if it is divisible by 100
-- Unless it is also divisible by 400
+### Leap Year Rule (Consistent Across All Modes)
+This calendar uses the **exact same leap year algorithm as the Gregorian calendar** to maintain synchronization and long-term accuracy:
+- A year is a leap year if it is exactly divisible by 4.
+- Century years (e.g., 2100, 2200) are **not** leap years unless they are also exactly divisible by 400 (e.g., 2000 was a leap year).
+- The extra day is added as **"Leap Day"** at the end of the year, following the standard **"Year Day"**.
 
-**This means:**
-- Years like 2024 (divisible by 4) are leap years
-- Century years like 2100 (divisible by 100 but not 400) are not leap years
-- Years like 2000 (divisible by 400) are leap years
-- The extra day is added as **"Leap Day"** at the end of the year, following the standard **"Year Day"**
+### Special Note for Universal Mode
+
+#### April 14th Meaning & Leap Year Handling
+In Universal Mode, the fixed date of April 14th serves as the anchor for the New Year. To maintain perfect synchronization with the Gregorian calendar, a unique rule is applied in leap years:
+- **In a leap year, April 14th serves a dual purpose:**
+  - It is **Leap Day** (the final day of the old year).
+  - It is **also March 1** (the first day of the new year).
+
+#### Why This Works
+This elegant solution maintains the simple April 14th anchor while inheriting the proven leap year rules of the Gregorian system, ensuring perfect long-term sync.
+
+**Example from leap year 2024:**
+- `April 13, 2024 (Gregorian)` = **Leap Day, 441**
+- `April 14, 2024 (Gregorian)` = **March 1, 442**
 
 ### Astronomical Alignment (A Pragmatic Approach)
 The calendar is designed to be **astronomically logical**, not astronomically perfect to the second.
 
-- **Equinox Date Determination:** For practicality, the start of the year (March 1) is determined by a simplified pattern where the equinox is set to **March 19** every 4 years (starting from 1588) and to **March 20** in other years
-- **Accuracy:** This pattern is within one day of the actual astronomical event for most years
-- **Why This Approach?** We prioritize ease of use and symbolic meaning over nanosecond precision
-- **Long-Term Accuracy:** Inherits the Gregorian calendar's excellent stability (~1 day drift every 3,236 years)
+-   **Equinox Date (Northern/Southern Modes):** The start of the year is determined by a simplified pattern where the equinox falls on **March 19** every 4 years and on **March 20** in other years. This pattern is accurate to within one day of the actual astronomical event.
+-   **Why This Approach?** The goal was to create a calendar that is **easy to compute and understand** while maintaining a powerful symbolic connection to the equinoxes. For all practical human purposes, this level of precision is sufficient.
+-   **Long-Term Accuracy:** By inheriting the Gregorian leap year rules, this calendar shares the same excellent long-term accuracy.
 
-### Design Choices & Trade-offs
-This project prioritizes **logical elegance and symbolic meaning** alongside functional timekeeping:
-
-- **Precision vs. Practicality:** Accepts ~1-day variance for a simpler system
-- **Hemispheric Focus:** Symbolically tied to Northern Hemisphere's spring
-- **Fixed Rules:** Uses consistent rules rather than dynamic calculations
-- **Mathematical Beauty:** 13 × 28 = 364 + 1 = 365 + 1 = 366 (perfect structure)
-
-### Example Conversions
-| Gregorian Date | Logical Vernal Date | Notes |
-| :--- | :--- | :--- |
-| March 20, 2025 | March 1, 443 | Start of a new year |
-| March 17, 2025 | Sol 28, 442 | Last day of 13-month structure |
-| March 18, 2025 | Year Day, 442 | Standard year-end day |
-| March 19, 2025 | Leap Day, 442 | Extra day for leap year 2024 |
+This project prioritizes **logical elegance, symbolic meaning, and global inclusivity** alongside functional timekeeping.
 
 ## 🤝 Collaboration Credits
 This project was created through a unique collaborative design process between:
-- **Original Idea & Design:** [Natte-anroxly](https://github.com/Natte-anroxly)
-- **AI System & Development:** [DeepSeek-V3](https://www.deepseek.com)
-
-**We welcome feedback and contributions!** Please open an issue for discussions.
+-   **Original Idea & Design:** [Natte-anroxly](https://github.com/Natte-anroxly)
+-   **AI System & Development:** [DeepSeek-V3](https://www.deepseek.com)
 
 ## 📄 License
 This project is open source and available under the [MIT License](LICENSE).
-
----
