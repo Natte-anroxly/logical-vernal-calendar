@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Logical Vernal Calendar — Local + Friend</title>
+<style>
+  :root{
+    --bg1:#0b1230; --bg2:#1e3a8a; --card:#f8fafc; --accent:#06b6d4; --accent2:#6d28d9; --muted:#6b7280;
+    --glass: rgba(255,255,255,0.94);
+    --special: #f59e0b; /* Color for special days */
+    --year-day: #10b981; /* Color for Year Day */
+    --leap-day: #8b5cf6; /* Color for Leap Day */
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:linear-gradient(135deg,var(--bg1),var(--bg2));color:#0f172a;display:flex;align-items:flex-start;justify-content:center;padding:20px 12px 60px;}
+  .wrap{width:100%;max-width:980px;background:var(--glass);border-radius:14px;padding:14px;box-shadow:0 20px 50px rgba(2,6,23,0.6);}
+
+  header{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+  .logo{width:56px;height:56px;border-radius:10px;background:linear-gradient(180deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:20px}
+  h1{margin:0;font-size:18px;color:var(--bg2)}
+  p.sub{margin:0;color:var(--muted);font-size:13px}
+
+  .cols{display:flex;gap:12px}
+  .left{width:320px;min-width:240px}
+  .right{flex:1;min-width:260px}
+
+  .card{background:white;border-radius:12px;padding:12px;box-shadow:0 8px 20px rgba(3,7,18,0.06);margin-bottom:12px}
+  label{display:block;font-weight:700;color:var(--bg2);margin-bottom:6px;font-size:13px}
+  select,input[type="date"],button{width:100%;padding:9px;border-radius:9px;border:1px solid #e6eef6;font-size:14px}
+  .small{font-size:13px;color:var(--muted)}
+  .row{display:flex;gap:8px;align-items:center}
+  button.primary{background:linear-gradient(90deg,var(--accent2),var(--accent));color:white;border:none;font-weight:800;cursor:pointer}
+  button.ghost{background:transparent;border:1px solid #e6eef6;cursor:pointer;padding:8px 10px;border-radius:9px}
+
+  /* calendar right */
+  .cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .cal-title{font-weight:900;color:var(--bg2)}
+  .navs{display:flex;gap:8px}
+  .weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px}
+  .weekday{text-align:center;font-weight:800;color:var(--muted);font-size:12px}
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .cell{background:linear-gradient(180deg,#fbfdff,#eef6fb);padding:10px;border-radius:8px;min-height:64px;position:relative;border:1px solid #f0f6fb;cursor:pointer;overflow:hidden}
+  .cell.small{min-height:52px;padding:6px;font-size:13px}
+  .cell.empty{background:transparent;border:none;cursor:default}
+  .num{position:absolute;left:8px;top:8px;font-weight:900;color:var(--bg2)}
+  .gsmall{position:absolute;left:8px;bottom:8px;color:var(--muted);font-size:12px}
+  .today{box-shadow:0 10px 30px rgba(59,130,246,0.12);border:2px solid rgba(59,130,246,0.18)}
+  .selected{outline:3px solid rgba(109,40,217,0.12)}
+  .legend{display:flex;gap:10px;align-items:center;margin-top:10px;color:var(--muted);font-size:13px}
+  .pill{padding:6px 10px;border-radius:999px;background:linear-gradient(90deg,#fff,#f7fbff);border:1px solid #eef6fb;font-weight:700;color:var(--bg2);}
+  
+  /* Special day styling */
+  .special{background:linear-gradient(180deg,#fffbeb,#fef3c7);border-color:#fcd34d}
+  .special .num{color:var(--special)}
+  .year-day{background:linear-gradient(180deg,#ecfdf5,#d1fae5);border-color:#34d399}
+  .year-day .num{color:var(--year-day)}
+  .leap-day{background:linear-gradient(180deg,#f5f3ff,#ede9fe);border-color:#a78bfa}
+  .leap-day .num{color:var(--leap-day)}
+
+  /* Special day full grid */
+  .special-grid{display:flex;justify-content:center;align-items:center;min-height:200px}
+  .special-cell{width:200px;height:200px;display:flex;flex-direction:column;justify-content:center;align-items:center;border-radius:12px;font-weight:bold}
+  
+  /* friend card smaller text */
+  .big{font-weight:900;font-size:16px;color:var(--bg2)}
+  .muted{color:var(--muted);font-size:13px}
+
+  @media (max-width:920px){
+    .cols{flex-direction:column}
+    .left{width:100%}
+  }
+  @media (max-width:520px){
+    .cell{min-height:48px;padding:6px}
+    .num{font-size:13px}
+    .gsmall{font-size:11px}
+    .special-cell{width:150px;height:150px}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap" id="app">
+    <header>
+      <div class="logo">LV</div>
+      <div>
+        <h1>Logical Vernal Calendar</h1>
+        <p class="sub">Local-adapted vernal months · friend timezone compare · hover shows Gregorian</p>
+      </div>
+    </header>
+
+    <div class="cols">
+      <!-- LEFT: controls & cards -->
+      <div class="left">
+        <div class="card">
+          <label>Mode / Hemisphere</label>
+          <select id="mode">
+            <option value="north">Northern (Vernal ≈ March)</option>
+            <option value="south">Southern (Autumnal ≈ Sep)</option>
+            <option value="universal">Universal (Fixed Apr 14)</option>
+          </select>
+
+          <div style="height:10px"></div>
+          <label>Your Timezone (auto)</label>
+          <div class="row">
+            <input id="localTZ" type="text" readonly />
+            <button id="detect" class="ghost" title="Re-detect">⤻</button>
+          </div>
+          <div style="height:8px"></div>
+          <div class="small">Calendar days flip at your local midnight.</div>
+
+          <hr style="margin:12px 0;border:none;border-top:1px solid #f0f6fb">
+
+          <label>Local Date (view)</label>
+          <input id="localDate" type="date" />
+
+          <div style="height:8px"></div>
+          <label>Friend / Reference Timezone</label>
+          <select id="friendTZ">
+            <option>UTC</option>
+            <option>Asia/Singapore</option>
+            <option>Asia/Tokyo</option>
+            <option>Asia/Jakarta</option>
+            <option>Europe/London</option>
+            <option>America/New_York</option>
+          </select>
+          <div style="height:8px"></div>
+          <button id="apply" class="primary">Apply & Refresh</button>
+        </div>
+
+        <div class="card">
+          <div class="big" id="localLV">—</div>
+          <div class="muted">Your Local Vernal Date</div>
+        </div>
+
+        <div class="card">
+          <div class="big" id="utcLV">—</div>
+          <div class="muted">UTC Vernal Date (anchor)</div>
+        </div>
+
+        <div class="card">
+          <div class="big" id="friendLV">—</div>
+          <div class="muted">Friend / Reference Vernal Date</div>
+        </div>
+      </div>
+
+      <!-- RIGHT: visual calendar -->
+      <div class="right">
+        <div class="card">
+          <div class="cal-head" style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div class="cal-title" id="calTitle">—</div>
+              <div class="small" id="calMode">—</div>
+            </div>
+            <div class="navs">
+              <button id="prev" class="ghost">◀ Prev</button>
+              <button id="today" class="pill">Today</button>
+              <button id="next" class="ghost">Next ▶</button>
+            </div>
+          </div>
+
+          <div id="weekdaysContainer" class="weekdays">
+            <div class="weekday">Mon</div><div class="weekday">Tue</div><div class="weekday">Wed</div><div class="weekday">Thu</div><div class="weekday">Fri</div><div class="weekday">Sat</div><div class="weekday">Sun</div>
+          </div>
+
+          <div id="grid" class="grid"></div>
+
+          <div class="legend">
+            <div class="pill">Vernal Month Grid</div>
+            <div style="margin-left:auto;color:var(--muted);font-size:13px">Click a cell for details · Hover to see Gregorian</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* Self-contained LV calendar
+   - Precise mapping between LV year number and LV start based on epoch (1583)
+   - Local timezone adaptation (midnight detection)
+   - One friend timezone compare
+   - Responsive calendar and correct prev/next navigation for all months
+*/
+
+// Constants & helpers
+const MS_DAY = 24*60*60*1000;
+const EPOCH_YEAR = 1583;
+const LV_MONTHS = ["March","April","May","June","July","August","September","October","November","December","January","February","Sol"];
+const DOM = {
+  mode: document.getElementById('mode'),
+  localTZ: document.getElementById('localTZ'),
+  detectBtn: document.getElementById('detect'),
+  localDate: document.getElementById('localDate'),
+  friendTZ: document.getElementById('friendTZ'),
+  apply: document.getElementById('apply'),
+  localLV: document.getElementById('localLV'),
+  utcLV: document.getElementById('utcLV'),
+  friendLV: document.getElementById('friendLV'),
+  grid: document.getElementById('grid'),
+  weekdaysContainer: document.getElementById('weekdaysContainer'),
+  calTitle: document.getElementById('calTitle'),
+  calMode: document.getElementById('calMode'),
+  prev: document.getElementById('prev'),
+  next: document.getElementById('next'),
+  today: document.getElementById('today'),
+};
+
+// Helper functions with error handling
+function detectTZ(){ 
+  try { 
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; 
+  } catch(e){ 
+    console.error("Error detecting timezone:", e);
+    return 'UTC'; 
+  } 
+}
+
+function formatDateYMD(d, tz='UTC') {
+  try {
+    const parts = new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(d);
+    const p = {}; parts.forEach(x=>p[x.type]=x.value);
+    return `${p.year}-${p.month}-${p.day}`;
+  } catch(e) {
+    console.error("Error formatting date:", e);
+    // Fallback to UTC formatting
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
+  }
+}
+
+function formatPretty(d, tz='UTC') {
+  try {
+    return new Intl.DateTimeFormat('en-GB',{timeZone:tz,year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(d);
+  } catch(e) {
+    console.error("Error formatting pretty date:", e);
+    // Fallback
+    return `${d.toISOString().split('T')[0]} ${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')} UTC`;
+  }
+}
+
+// Find the exact UTC instant that corresponds to local midnight for a YYYY-MM-DD in a tz.
+// Search small window (±14 hours) to handle DST; otherwise fallback to Date.UTC
+function findLocalMidnightInstant(ymd, tz) {
+  try {
+    const [y,m,d] = ymd.split('-').map(Number);
+    const base = Date.UTC(y,m-1,d,0,0,0);
+    const step = 15*60*1000; // 15 min
+    const max = 14*60*60*1000;
+    for (let off = -max; off <= max; off += step) {
+      const cand = new Date(base + off);
+      const parts = new Intl.DateTimeFormat('en-GB',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).formatToParts(cand);
+      const map = {}; parts.forEach(p => map[p.type] = p.value);
+      if (!map.year) continue;
+      if (Number(map.year)===y && Number(map.month)===m && Number(map.day)===d && Number(map.hour)===0 && Number(map.minute)===0) {
+        return cand;
+      }
+    }
+    return new Date(base); // fallback
+  } catch(e) {
+    console.error("Error finding local midnight:", e);
+    // Fallback to simple UTC calculation
+    const [y,m,d] = ymd.split('-').map(Number);
+    return new Date(Date.UTC(y,m-1,d,0,0,0));
+  }
+}
+
+// Gregorian/Equinox helpers
+function isGregorianLeap(y){ return (y%4===0 && (y%100!==0 || y%400===0)); }
+
+function getMarchEquinox(gYear){
+  // From 1588+: Leap years = March 19, Normal years = March 20
+  // Before 1588: Always March 20
+  if (gYear < 1588) return new Date(Date.UTC(gYear, 2, 20));
+  return ((gYear - 1588) % 4 === 0) ? new Date(Date.UTC(gYear, 2, 19)) : new Date(Date.UTC(gYear, 2, 20));
+}
+
+function getSeptemberEquinox(gYear){
+  // From 1588+: Leap years = Sept 22, Normal years = Sept 23
+  // Before 1588: Always Sept 23
+  if (gYear < 1588) return new Date(Date.UTC(gYear, 8, 23));
+  return ((gYear - 1588) % 4 === 0) ? new Date(Date.UTC(gYear, 8, 22)) : new Date(Date.UTC(gYear, 8, 23));
+}
+
+function getUniversalAnchor(gYear){
+  // Always April 14 = March 1 LV (no year variation)
+  return new Date(Date.UTC(gYear, 3, 14));
+}
+
+// Given an LV year number (1-based), return UTC instant of LV year's start depending on mode.
+// Mapping: lvYearNumber -> lvStartGregorianYear = EPOCH_YEAR + (lvYearNumber - 1)
+function lvStartUTCForYear(lvYearNumber, mode) {
+  const gYear = EPOCH_YEAR + (lvYearNumber - 1);
+  if (mode === 'north') return getMarchEquinox(gYear);
+  if (mode === 'south') return getSeptemberEquinox(gYear);
+  return getUniversalAnchor(gYear);
+}
+
+// Convert a UTC instant (representing midnight of some tz) to LV structured result
+function utcInstantToLV(utcInstant, mode) {
+  try {
+    const gYear = utcInstant.getUTCFullYear();
+    let startUTC, lvStartGregorianYear;
+    
+    if (mode === 'north') {
+      const thisEq = getMarchEquinox(gYear);
+      const prevEq = getMarchEquinox(gYear-1);
+      if (utcInstant.getTime() >= thisEq.getTime()) { 
+        startUTC = thisEq; 
+        lvStartGregorianYear = gYear; 
+      } else { 
+        startUTC = prevEq; 
+        lvStartGregorianYear = gYear-1; 
+      }
+    } else if (mode === 'south') {
+      const thisEq = getSeptemberEquinox(gYear);
+      const prevEq = getSeptemberEquinox(gYear-1);
+      if (utcInstant.getTime() >= thisEq.getTime()) { 
+        startUTC = thisEq; 
+        lvStartGregorianYear = gYear; 
+      } else { 
+        startUTC = prevEq; 
+        lvStartGregorianYear = gYear-1; 
+      }
+    } else { // universal
+      const thisA = getUniversalAnchor(gYear);
+      const prevA = getUniversalAnchor(gYear-1);
+      if (utcInstant.getTime() >= thisA.getTime()) { 
+        startUTC = thisA; 
+        lvStartGregorianYear = gYear; 
+      } else { 
+        startUTC = prevA; 
+        lvStartGregorianYear = gYear-1; 
+      }
+    }
+
+    const daysDiff = Math.floor((utcInstant.getTime() - startUTC.getTime()) / MS_DAY);
+    const lvYearNumber = lvStartGregorianYear - EPOCH_YEAR + 1;
+    const lvYearIsLeap = isGregorianLeap(lvStartGregorianYear);
+
+    if (daysDiff >= 0 && daysDiff <= 363) {
+      const m = Math.floor(daysDiff/28);
+      const d = (daysDiff%28)+1;
+      return { kind:'month-day', monthIndex:m, day:d, lvYearNumber, startUTC };
+    } else if (daysDiff === 364) {
+      return { kind:'year-day', lvYearNumber, startUTC };
+    } else if (daysDiff === 365 && lvYearIsLeap) {
+      return { kind:'leap-day', lvYearNumber, startUTC };
+    } else if (daysDiff < 0) {
+      // Before the start of the LV year, show as previous year's end
+      return { kind:'before', lvYearNumber, startUTC };
+    } else {
+      // After the end of the LV year, show as next year's start
+      return { kind:'after', lvYearNumber, startUTC };
+    }
+  } catch(e) {
+    console.error("Error converting UTC to LV:", e);
+    return { kind: 'error', error: e.message };
+  }
+}
+
+// Given LV year number and month index (0..14), return UTC instant for day 1 of that month/special day
+function lvMonthFirstUTC(lvYearNumber, monthIndex, mode) {
+  const startUTC = lvStartUTCForYear(lvYearNumber, mode);
+  
+  // For regular months (0-11)
+  if (monthIndex <= 11) {
+    const dayIndex = monthIndex * 28; // 0-based within LV year
+    return new Date(startUTC.getTime() + dayIndex * MS_DAY);
+  }
+  
+  // For Sol (monthIndex 12)
+  if (monthIndex === 12) {
+    return new Date(startUTC.getTime() + 12 * 28 * MS_DAY);
+  }
+  
+  // For Year Day (monthIndex 13)
+  if (monthIndex === 13) {
+    return new Date(startUTC.getTime() + 364 * MS_DAY);
+  }
+  
+  // For Leap Day (monthIndex 14)
+  if (monthIndex === 14) {
+    return new Date(startUTC.getTime() + 365 * MS_DAY);
+  }
+  
+  return startUTC; // fallback
+}
+
+// Get the maximum month index for a given LV year
+function getMaxMonthIndex(lvYearNumber) {
+  const gregorianYear = EPOCH_YEAR + (lvYearNumber - 1);
+  const isLeapYear = isGregorianLeap(gregorianYear);
+  return isLeapYear ? 14 : 13; // 12 months + Year Day + (Leap Day if leap year)
+}
+
+// Get the type of special day for a month index
+function getSpecialDayType(monthIndex) {
+  if (monthIndex === 13) return 'year-day';
+  if (monthIndex === 14) return 'leap-day';
+  return null;
+}
+
+// Format label from LV structured
+function labelFromLV(obj) {
+  if (!obj) return '—';
+  if (obj.kind === 'month-day') return `${LV_MONTHS[obj.monthIndex]} ${obj.day}, LV ${obj.lvYearNumber}`;
+  if (obj.kind === 'year-day') return `Year Day, LV ${obj.lvYearNumber}`;
+  if (obj.kind === 'leap-day') return `Leap Day, LV ${obj.lvYearNumber}`;
+  if (obj.kind === 'before') return `Before LV ${obj.lvYearNumber} start`;
+  if (obj.kind === 'after') return `After LV ${obj.lvYearNumber} end`;
+  if (obj.kind === 'error') return `Error: ${obj.error}`;
+  return `March 1, LV ${obj.lvYearNumber}`;
+}
+
+// App state
+let viewTZ = detectTZ();
+let friendTZ = 'UTC';
+let currentLVYear = null;
+let currentMonthIndex = 0; // 0..14 (0-11: months, 12: Sol, 13: Year Day, 14: Leap Day)
+
+// Compute LV struct for a local date (YYYY-MM-DD) in tz
+function lvForLocalDate(ymd, tz, mode) {
+  try {
+    const instant = findLocalMidnightInstant(ymd, tz);
+    return utcInstantToLV(instant, mode);
+  } catch(e) {
+    console.error("Error in lvForLocalDate:", e);
+    return { kind: 'error', error: e.message };
+  }
+}
+
+// refresh local/utc/friend labels and calendar grid
+function refreshAll() {
+  try {
+    const mode = DOM.mode.value;
+    // local label for localDate
+    const ymd = DOM.localDate.value;
+    const localLV = lvForLocalDate(ymd, viewTZ, mode);
+    DOM.localLV.textContent = labelFromLV(localLV);
+    // UTC label: treat same date string as UTC midnight
+    const [y,m,d] = ymd.split('-').map(Number);
+    const utcMid = new Date(Date.UTC(y,m-1,d,0,0,0));
+    const utcLV = utcInstantToLV(utcMid, mode);
+    DOM.utcLV.textContent = labelFromLV(utcLV);
+    // friend label: compute for same local date but in friendTZ
+    friendTZ = DOM.friendTZ.value || friendTZ;
+    const friendLV = lvForLocalDate(ymd, friendTZ, mode);
+    DOM.friendLV.textContent = labelFromLV(friendLV);
+
+    // Set calendar title & mode subtitle
+    const specialType = getSpecialDayType(currentMonthIndex);
+    if (specialType === 'year-day') {
+      DOM.calTitle.textContent = `Year Day — LV ${currentLVYear}`;
+    } else if (specialType === 'leap-day') {
+      DOM.calTitle.textContent = `Leap Day — LV ${currentLVYear}`;
+    } else if (currentMonthIndex <= 11) {
+      DOM.calTitle.textContent = `${LV_MONTHS[currentMonthIndex]} — LV ${currentLVYear}`;
+    } else {
+      DOM.calTitle.textContent = `Sol — LV ${currentLVYear}`;
+    }
+    
+    DOM.calMode.textContent = `Mode: ${mode} · View timezone: ${viewTZ}`;
+
+    // Build grid for currentLVYear & currentMonthIndex in viewTZ
+    buildGrid(currentLVYear, currentMonthIndex, mode);
+  } catch(e) {
+    console.error("Error in refreshAll:", e);
+    DOM.grid.innerHTML = `<div class="cell" style="grid-column: 1 / -1; text-align: center; padding: 20px;">
+      Error: ${e.message}
+    </div>`;
+  }
+}
+
+// Build month grid (always 28 days) and align to weekday of day 1 in viewTZ
+function buildGrid(lvYearNumber, monthIndex, mode) {
+  try {
+    DOM.grid.innerHTML = '';
+    
+    const specialType = getSpecialDayType(monthIndex);
+    
+    // Handle special days (Year Day and Leap Day)
+    if (specialType) {
+      DOM.weekdaysContainer.style.display = 'none';
+      
+      const specialGrid = document.createElement('div');
+      specialGrid.className = 'special-grid';
+      
+      const specialCell = document.createElement('div');
+      specialCell.className = `special-cell ${specialType}`;
+      
+      const dayUTC = lvMonthFirstUTC(lvYearNumber, monthIndex, mode);
+      
+      const title = document.createElement('div');
+      title.className = 'big';
+      title.textContent = specialType === 'year-day' ? 'Year Day' : 'Leap Day';
+      
+      const year = document.createElement('div');
+      year.className = 'muted';
+      year.textContent = `LV ${lvYearNumber}`;
+      
+      const dateInfo = document.createElement('div');
+      dateInfo.className = 'muted';
+      dateInfo.textContent = formatDateYMD(dayUTC, viewTZ);
+      dateInfo.style.marginTop = '8px';
+      
+      specialCell.appendChild(title);
+      specialCell.appendChild(year);
+      specialCell.appendChild(dateInfo);
+      
+      // Add click handler
+      specialCell.addEventListener('click', () => {
+        const lines = [
+          `Vernal: ${specialType === 'year-day' ? 'Year Day' : 'Leap Day'}, LV ${lvYearNumber}`,
+          `Local (${viewTZ}): ${formatPretty(dayUTC, viewTZ)}`,
+          `UTC: ${formatPretty(dayUTC,'UTC')}`,
+          `Friend (${friendTZ}): ${formatPretty(dayUTC, friendTZ)}`
+        ];
+        alert(lines.join('\n'));
+      });
+      
+      specialGrid.appendChild(specialCell);
+      DOM.grid.appendChild(specialGrid);
+      return;
+    }
+    
+    // Regular month display
+    DOM.weekdaysContainer.style.display = 'grid';
+    
+    // first day UTC instant - FIXED: Use correct day calculation
+    const day1UTC = lvMonthFirstUTC(lvYearNumber, monthIndex, mode);
+    
+    // Determine weekday of day1 in viewTZ (Mon=1..Sun=7)
+    const wdShort = new Intl.DateTimeFormat('en-GB',{timeZone:viewTZ,weekday:'short'}).format(day1UTC); // Mon, Tue ...
+    const map = {'Mon':1,'Tue':2,'Wed':3,'Thu':4,'Fri':5,'Sat':6,'Sun':7};
+    const startCol = map[wdShort] || 1;
+    
+    // prepare array: blanks then 28 day objects
+    const cells = [];
+    for (let i=1;i<startCol;i++) cells.push(null);
+    
+    for (let d=1; d<=28; d++) {
+      const utcForDay = new Date(day1UTC.getTime() + (d-1) * MS_DAY);
+      cells.push({ d, utc: utcForDay, isSpecial: false });
+    }
+    
+    // ensure full row count
+    const total = Math.ceil(cells.length/7) * 7;
+    for (let i=0; i<total; i++){
+      const item = cells[i] || null;
+      const el = document.createElement('div');
+      
+      if (!item) { 
+        el.className='cell empty'; 
+        DOM.grid.appendChild(el); 
+        continue; 
+      }
+      
+      el.className = 'cell';
+      
+      const num = document.createElement('div'); 
+      num.className='num'; 
+      num.textContent = item.d;
+      
+      const gsmall = document.createElement('div'); 
+      gsmall.className='gsmall'; 
+      gsmall.textContent = formatDateYMD(item.utc, viewTZ);
+      
+      el.appendChild(num); 
+      el.appendChild(gsmall);
+
+      // highlight today (compare viewTZ date)
+      const todayYmd = formatDateYMD(new Date(), viewTZ);
+      if (formatDateYMD(item.utc, viewTZ) === todayYmd) el.classList.add('today');
+
+      // tooltip title: Gregorian in viewTZ / UTC / friendTZ
+      el.title = `${LV_MONTHS[monthIndex]} ${item.d}, LV ${lvYearNumber}\nLocal (${viewTZ}): ${formatPretty(item.utc, viewTZ)}\nUTC: ${formatPretty(item.utc,'UTC')}\nFriend (${friendTZ}): ${formatPretty(item.utc, friendTZ)}`;
+
+      // click: show modal-style alert with details (kept simple)
+      el.addEventListener('click', () => {
+        const lines = [
+          `Vernal: ${LV_MONTHS[monthIndex]} ${item.d}, LV ${lvYearNumber}`,
+          `Local (${viewTZ}): ${formatPretty(item.utc, viewTZ)}`,
+          `UTC: ${formatPretty(item.utc,'UTC')}`,
+          `Friend (${friendTZ}): ${formatPretty(item.utc, friendTZ)}`
+        ];
+        alert(lines.join('\n'));
+      });
+
+      DOM.grid.appendChild(el);
+    }
+  } catch(e) {
+    console.error("Error building grid:", e);
+    DOM.grid.innerHTML = `<div class="cell" style="grid-column: 1 / -1; text-align: center; padding: 20px;">
+      Error building calendar: ${e.message}
+    </div>`;
+  }
+}
+
+// navigation handlers - FIXED: Handle special days properly
+function prevMonth() {
+  const maxMonthIndex = getMaxMonthIndex(currentLVYear);
+  
+  if (currentMonthIndex === 0) {
+    // Going back from March to previous year
+    currentLVYear -= 1;
+    currentMonthIndex = getMaxMonthIndex(currentLVYear);
+  } else {
+    currentMonthIndex -= 1;
+  }
+  
+  refreshAll();
+}
+
+function nextMonth() {
+  const maxMonthIndex = getMaxMonthIndex(currentLVYear);
+  
+  if (currentMonthIndex >= maxMonthIndex) {
+    // Going forward from last month to next year
+    currentLVYear += 1;
+    currentMonthIndex = 0;
+  } else {
+    currentMonthIndex += 1;
+  }
+  
+  refreshAll();
+}
+
+function goToday() {
+  // set localDate to today in viewTZ and update LV to reflect that date
+  DOM.localDate.value = formatDateYMD(new Date(), viewTZ);
+  const lv = lvForLocalDate(DOM.localDate.value, viewTZ, DOM.mode.value);
+  if (lv.kind !== 'error') {
+    currentLVYear = lv.lvYearNumber;
+    if (lv.kind === 'month-day') {
+      currentMonthIndex = lv.monthIndex;
+    } else if (lv.kind === 'year-day') {
+      currentMonthIndex = 13;
+    } else if (lv.kind === 'leap-day') {
+      currentMonthIndex = 14;
+    } else {
+      currentMonthIndex = 0;
+    }
+  }
+  refreshAll();
+}
+
+// attach events
+DOM.detectBtn.addEventListener('click', () => {
+  viewTZ = detectTZ();
+  DOM.localTZ.value = viewTZ;
+  DOM.localDate.value = formatDateYMD(new Date(), viewTZ);
+  refreshAll();
+});
+DOM.apply.addEventListener('click', () => {
+  viewTZ = DOM.localTZ.value || viewTZ;
+  friendTZ = DOM.friendTZ.value || friendTZ;
+  // recompute current LV year/month using selected localDate
+  const lv = lvForLocalDate(DOM.localDate.value, viewTZ, DOM.mode.value);
+  if (lv.kind !== 'error') {
+    currentLVYear = lv.lvYearNumber;
+    if (lv.kind === 'month-day') {
+      currentMonthIndex = lv.monthIndex;
+    } else if (lv.kind === 'year-day') {
+      currentMonthIndex = 13;
+    } else if (lv.kind === 'leap-day') {
+      currentMonthIndex = 14;
+    } else {
+      currentMonthIndex = 0;
+    }
+  }
+  refreshAll();
+});
+DOM.prev.addEventListener('click', prevMonth);
+DOM.next.addEventListener('click', nextMonth);
+DOM.today.addEventListener('click', goToday);
+DOM.mode.addEventListener('change', () => { // when mode changed, recompute based on current localDate
+  const lv = lvForLocalDate(DOM.localDate.value, viewTZ, DOM.mode.value);
+  if (lv.kind !== 'error') {
+    currentLVYear = lv.lvYearNumber;
+    if (lv.kind === 'month-day') {
+      currentMonthIndex = lv.monthIndex;
+    } else if (lv.kind === 'year-day') {
+      currentMonthIndex = 13;
+    } else if (lv.kind === 'leap-day') {
+      currentMonthIndex = 14;
+    } else {
+      currentMonthIndex = 0;
+    }
+  }
+  refreshAll();
+});
+
+// Initialize the application
+function init() {
+  DOM.localTZ.value = viewTZ;
+  DOM.friendTZ.value = friendTZ;
+  // set local date input to today's date in viewTZ
+  DOM.localDate.value = formatDateYMD(new Date(), viewTZ);
+  // initial LV calculation from today's local midnight
+  const lv = lvForLocalDate(DOM.localDate.value, viewTZ, DOM.mode.value);
+  if (lv.kind !== 'error') {
+    currentLVYear = lv.lvYearNumber;
+    if (lv.kind === 'month-day') {
+      currentMonthIndex = lv.monthIndex;
+    } else if (lv.kind === 'year-day') {
+      currentMonthIndex = 13;
+    } else if (lv.kind === 'leap-day') {
+      currentMonthIndex = 14;
+    } else {
+      currentMonthIndex = 0;
+    }
+  }
+  refreshAll();
+}
+
+// Start the application
+init();
+</script>
+</body>
+</html>
